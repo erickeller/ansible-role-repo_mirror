@@ -10,6 +10,8 @@ log_file="{{ repo_mirror_log_path }}/{{ item.name }}/repo_{{ item.name }}.log"
 status_file="{{ repo_mirror_base_path }}/{{ item.name }}.json"
 
 repo_source="{{ item.source_repo }}"
+# default lastupdate file but allow user to overwrite
+lastupdate_file="{{ item.update_file | default("lastupdate") }}"
 
 datetime_format="{{ repo_mirror_datetime_format }}"
 bwlimit="{{ item.bwlimit | default(repo_mirror_bwlimit) }}"
@@ -56,8 +58,8 @@ exec 9>"${lock}"
 flock -n 9 || log-message 1 "{{ item.name }} mirror rsync job is already running!" 1
 
 # exit if there weren't any changes
-rsync "${repo_source}/lastupdate" "${lastupdate_tmp}"
-if diff -b "${lastupdate_tmp}" "${base_path}/lastupdate" >/dev/null; then
+rsync "${repo_source}/${lastupdate_file}" "${lastupdate_tmp}"
+if diff -b "${lastupdate_tmp}" "${base_path}/${lastupdate_file}" >/dev/null; then
     log-message 1 "Mirror is already up to date!" 0
 fi
 
